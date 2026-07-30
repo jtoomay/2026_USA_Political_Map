@@ -1,36 +1,46 @@
-import Link from 'next/link'
+import type { Metadata } from 'next'
+import { getAllStates, getLastUpdated } from '@/api/elections'
+import { ElectionMapExplorer } from '@/components/ElectionMapExplorer'
+import { StateList } from '@/components/StateList'
 
+export const metadata: Metadata = {
+  title: 'Home',
+  description:
+    '2026 U.S. midterm elections: an interactive Senate and House control map with side-by-side race ratings from multiple forecasters.',
+}
+
+function formatLastUpdated(iso: string): string {
+  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
+}
+
+// TODO: once the real backend is connected, this should read from a `fetch`
+// using Next's cache with a short `revalidate` window (see the TODO in
+// src/api/elections.ts) instead of a fully static build — election data
+// changes often and a twice-daily refresh agent is the plan.
 export default function Home() {
+  const states = getAllStates()
+  const lastUpdated = getLastUpdated()
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-24 text-center">
-      <div className="glass-panel inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-xs tracking-wide text-comet">
-        <span aria-hidden="true" className="status-dot h-1.5 w-1.5 rounded-full bg-comet" />
-        READY TO LAUNCH
-      </div>
-
-      <div className="max-w-3xl space-y-5">
-        <h1 className="font-display text-glow-nebula text-6xl font-bold tracking-tight text-starlight sm:text-7xl">
-          Home
-        </h1>
-        <p className="mx-auto max-w-xl text-lg text-dust">
-          Consider this liftoff. Routing, server-rendered data, and full SEO metadata are already
-          wired up on Next.js &mdash; everything after this page is yours to build.
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-12">
+      <div className="text-center">
+        <h1 className="font-display text-4xl font-bold text-foreground sm:text-5xl">2026 Midterm Elections</h1>
+        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+          An interactive map of the 2026 U.S. Senate and House races, colored by the party
+          currently controlling each seat.
         </p>
+        <p className="mt-2 text-xs text-muted-foreground">Last updated {formatLastUpdated(lastUpdated)}</p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Link
-          href="/data"
-          className="rounded-full bg-gradient-to-r from-nebula to-comet px-6 py-3 text-sm font-semibold text-void shadow-[0_0_30px_rgba(124,92,255,0.35)] transition hover:brightness-110"
-        >
-          Try the data-fetching example &rarr;
-        </Link>
-        <Link
-          href="/stack"
-          className="glass-panel rounded-full px-6 py-3 text-sm font-semibold text-starlight transition hover:border-white/30"
-        >
-          Browse what&rsquo;s included
-        </Link>
+      {/* Desktop/tablet: interactive map. Mobile: plain list below — both
+          link to the same /states/[slug] routes so every state page stays
+          reachable regardless of device. */}
+      <div className="hidden md:block">
+        <ElectionMapExplorer states={states} />
+      </div>
+
+      <div className="md:hidden">
+        <StateList states={states} />
       </div>
     </div>
   )

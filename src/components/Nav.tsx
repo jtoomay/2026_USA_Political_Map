@@ -1,10 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import toomayLogo from '../assets/toomay-logo.png'
-import { NextBadge } from './NextBadge'
+import { SITE_NAME } from '../lib/site'
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -17,18 +15,17 @@ export function Nav() {
   const pathname = usePathname()
 
   const linkClass =
-    'rounded-full px-4 py-2 text-sm font-medium text-dust transition hover:bg-white/5 hover:text-starlight'
+    'rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground'
   // `!` forces the active classes to win over `linkClass`'s color utilities —
   // both set color/background, and without `!` the CSS source order (not JSX
   // order) would decide, which previously made the active tab's text invisible.
-  const activeLinkClass =
-    '!bg-gradient-to-r !from-nebula !to-nebula/70 !text-starlight !shadow-[0_0_24px_rgba(124,92,255,0.5)] hover:!text-starlight'
+  const activeLinkClass = '!bg-foreground !text-background hover:!text-background'
 
   return (
-    <header className="sticky top-0 z-20 px-4 pt-4 sm:px-6">
-      <nav className="glass-panel mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 rounded-full px-4 py-2 sm:px-5">
-        <Link href="/" className="flex items-center pr-2">
-          <Image src={toomayLogo} alt="Toomay" className="h-8 w-auto" priority />
+    <header className="border-b border-border">
+      <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <Link href="/" className="font-display text-lg font-semibold text-foreground">
+          {SITE_NAME}
         </Link>
 
         <div className="flex items-center gap-1">
@@ -46,8 +43,6 @@ export function Nav() {
             )
           })}
         </div>
-
-        <NextBadge />
       </nav>
     </header>
   )

@@ -4,26 +4,26 @@ import type { Launch } from '../api/launches'
 import { useCountdown } from '../hooks/useCountdown'
 
 const STATUS_STYLES: Record<string, string> = {
-  Go: 'bg-comet/15 text-comet border-comet/30',
-  TBD: 'bg-flare/15 text-flare border-flare/30',
-  Success: 'bg-comet/15 text-comet border-comet/30',
-  Hold: 'bg-dust/15 text-dust border-dust/30',
-  Failure: 'bg-red-500/15 text-red-400 border-red-500/30',
+  Go: 'bg-green-50 text-green-700 border-green-200',
+  TBD: 'bg-amber-50 text-amber-700 border-amber-200',
+  Success: 'bg-green-50 text-green-700 border-green-200',
+  Hold: 'bg-muted text-muted-foreground border-border',
+  Failure: 'bg-red-50 text-red-700 border-red-200',
 }
 
 function statusStyle(abbrev: string): string {
-  return STATUS_STYLES[abbrev] ?? 'bg-dust/15 text-dust border-dust/30'
+  return STATUS_STYLES[abbrev] ?? 'bg-muted text-muted-foreground border-border'
 }
 
 export function LaunchCard({ launch }: { launch: Launch }) {
   const countdown = useCountdown(launch.net)
 
   return (
-    <li className="glass-panel flex flex-col gap-4 rounded-2xl p-5 transition hover:border-nebula/30">
+    <li className="flex flex-col gap-4 rounded-lg border border-border p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] tracking-wide text-dust uppercase">{launch.lsp_name}</p>
-          <h3 className="font-display mt-1 text-lg leading-tight font-semibold text-starlight">
+          <p className="font-mono text-[11px] tracking-wide text-muted-foreground uppercase">{launch.lsp_name}</p>
+          <h3 className="font-display mt-1 text-lg leading-tight font-semibold text-foreground">
             {launch.mission ?? launch.name}
           </h3>
         </div>
@@ -34,9 +34,9 @@ export function LaunchCard({ launch }: { launch: Launch }) {
         </span>
       </div>
 
-      <p className="text-sm text-dust">{launch.location}</p>
+      <p className="text-sm text-muted-foreground">{launch.location}</p>
 
-      <div className="mt-auto rounded-lg border border-white/10 bg-black/20 px-3 py-2 font-mono text-sm text-comet">
+      <div className="mt-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground">
         {countdown}
       </div>
     </li>

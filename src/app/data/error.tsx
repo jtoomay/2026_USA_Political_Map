@@ -5,13 +5,13 @@
 // interactivity: React needs a client-side boundary to catch render errors.
 export default function DataError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="glass-panel mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl p-8 text-center">
-      <p className="font-mono text-sm text-flare">Request failed.</p>
-      <p className="text-sm text-dust">{error.message || 'Could not reach the launch feed.'}</p>
+    <div className="mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg border border-border p-8 text-center">
+      <p className="font-mono text-sm text-foreground">Request failed.</p>
+      <p className="text-sm text-muted-foreground">{error.message || 'Could not reach the launch feed.'}</p>
       <button
         type="button"
         onClick={() => reset()}
-        className="rounded-full bg-gradient-to-r from-nebula to-comet px-5 py-2 text-sm font-semibold text-void"
+        className="rounded-md bg-foreground px-5 py-2 text-sm font-semibold text-background"
       >
         Retry
       </button>

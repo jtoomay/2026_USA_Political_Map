@@ -11,13 +11,13 @@ export function RefreshButton() {
   const [isPending, startTransition] = useTransition()
 
   return (
-    <div className="flex items-center justify-center gap-3 font-mono text-xs text-dust">
-      {isPending ? <span className="text-comet">refreshing&hellip;</span> : null}
+    <div className="flex items-center justify-center gap-3 font-mono text-xs text-muted-foreground">
+      {isPending ? <span>refreshing&hellip;</span> : null}
       <button
         type="button"
         onClick={() => startTransition(() => router.refresh())}
         disabled={isPending}
-        className="glass-panel rounded-full px-3 py-1.5 text-starlight transition hover:border-nebula/40 disabled:opacity-50"
+        className="rounded-md border border-border px-3 py-1.5 text-foreground transition hover:bg-muted disabled:opacity-50"
       >
         Refetch manifest
       </button>

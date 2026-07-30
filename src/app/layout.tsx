@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { NebulaField } from '../components/NebulaField'
+import { Footer } from '../components/Footer'
 import { Nav } from '../components/Nav'
-import { Starfield } from '../components/Starfield'
-import { inter, jetbrainsMono, spaceGrotesk } from '../lib/fonts'
+import { inter, jetbrainsMono } from '../lib/fonts'
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE_DEFAULT, SITE_URL } from '../lib/site'
 import './globals.css'
 
@@ -43,8 +42,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
-  themeColor: '#06060c',
+  colorScheme: 'light',
+  themeColor: '#ffffff',
 }
 
 const jsonLd = {
@@ -57,20 +56,17 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
       <body>
-        <div className="relative min-h-screen">
-          <Starfield />
-          <NebulaField />
+        <div className="flex min-h-screen flex-col">
+          <Nav />
 
-          <div className="relative z-10 flex min-h-screen flex-col">
-            <Nav />
+          <main className="flex flex-1 flex-col">{children}</main>
 
-            <main className="flex flex-1 flex-col">{children}</main>
-          </div>
+          <Footer />
         </div>
       </body>
     </html>

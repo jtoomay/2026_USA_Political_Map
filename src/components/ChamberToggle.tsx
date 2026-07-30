@@ -10,6 +10,7 @@ interface ChamberToggleProps {
 const OPTIONS: { value: Chamber; label: string }[] = [
   { value: 'senate', label: 'Senate' },
   { value: 'house', label: 'House' },
+  { value: 'governor', label: 'Governor' },
 ]
 
 export function ChamberToggle({ chamber, onChange }: ChamberToggleProps) {

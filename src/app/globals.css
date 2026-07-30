@@ -28,6 +28,56 @@
 @layer base {
   html {
     color-scheme: dark;
+    /* Standard-width app shell (Nav, Footer, home, /data) — overridden by the
+       width toggle below. Kept as a custom property (not a Tailwind max-w-*
+       utility) so every consumer can share one source of truth that a client
+       component can flip via a `data-*` attribute without needing React
+       Context or converting Server Components (Nav/Footer/page.tsx) to
+       Client Components. */
+    --content-max-w: var(--container-5xl);
+  }
+
+  /* Light theme override. Same token names as the default (dark) palette
+     above — components never branch on theme, they just consume
+     `bg-background`/`text-foreground`/etc and the cascade handles the rest.
+     Party colors (`--color-party-*`) are re-picked, not reused as-is: the
+     dark-mode values are too light to hit 4.5:1 text contrast on a white
+     surface. Validated with the dataviz skill's palette validator
+     (`validate_palette.js "#2f5fd6,#c8323b,#96700f,#7c1fb0" --mode light
+     --surface #ffffff`) — passes lightness/chroma/contrast; the amber↔red
+     deutan pair lands below the ideal CVD floor (a known hard tradeoff: an
+     amber dark enough for AA contrast on white inevitably drifts toward
+     red on the deutan confusion axis), mitigated by this app's existing
+     habit of never using party color alone — every fill is paired with a
+     "D"/"R"/"I" text label in the legend, table, and tooltip. */
+  html[data-theme='light'] {
+    color-scheme: light;
+    --color-background: #f6f7fb;
+    --color-foreground: #10131c;
+    --color-panel: #ffffff;
+    --color-panel-soft: #eef0f6;
+    --color-muted: #eef0f6;
+    --color-muted-foreground: #5b6478;
+    --color-border: #dde1ea;
+
+    --color-accent: #0e7d70;
+    --color-accent-foreground: #ffffff;
+
+    --color-party-r: #c8323b;
+    --color-party-d: #2f5fd6;
+    --color-party-i: #96700f;
+    --color-party-split: #7c1fb0;
+  }
+
+  /* The width toggle only takes visual effect at the `md` breakpoint and up
+     — matches the toggle button itself being hidden below `md` (see
+     WidthToggle.tsx) so a stored "wide" preference from a desktop session
+     can never affect a phone layout, even before the toggle's own
+     `hidden md:inline-flex` has a chance to hide it. */
+  @media (min-width: 48rem) {
+    html[data-width='wide'] {
+      --content-max-w: var(--container-7xl);
+    }
   }
 
   body {

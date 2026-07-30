@@ -10,7 +10,7 @@ const FOOTER_LINKS = [
 export function Footer() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:px-6">
+      <div className="mx-auto flex max-w-[var(--content-max-w)] flex-col items-center justify-between gap-3 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:px-6">
         <p>&copy; 2026 {SITE_NAME}. Data shown is for informational purposes only.</p>
         <div className="flex items-center gap-5">
           {FOOTER_LINKS.map((link) => (

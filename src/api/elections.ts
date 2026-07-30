@@ -1,7 +1,7 @@
 import type { USAStateAbbreviation } from '@mirawision/usa-map-react'
 
 export type Party = 'D' | 'R' | 'I'
-export type Chamber = 'senate' | 'house'
+export type Chamber = 'senate' | 'house' | 'governor'
 export type ElectionType = 'regular' | 'special'
 export type RatingCategory = 'Safe' | 'Likely' | 'Lean' | 'Toss-up'
 
@@ -30,6 +30,17 @@ export interface Incumbent {
   party: Party
 }
 
+export interface Candidate {
+  name: string
+  party: Party
+  incumbent: boolean
+  // 0–100. A simplified, illustrative estimate derived from the `ratings`
+  // below (not attributed to any single forecaster) — see the MOCK_STATES
+  // header comment. Not a prediction from any real polling or forecasting
+  // model.
+  winProbability: number
+}
+
 export interface SenateRace {
   electionType: ElectionType
   // The party CURRENTLY holding the seat — this drives map coloring and stays
@@ -39,6 +50,20 @@ export interface SenateRace {
   currentParty: Party
   incumbent: Incumbent | null // null for open-seat races
   status: string
+  candidates: Candidate[]
+  ratings: RaceRating[]
+}
+
+// Structurally identical to SenateRace (both are single-winner, statewide
+// races) — kept as its own named interface rather than a shared
+// `StatewideRace` alias so the two can diverge later (e.g. governors carry
+// term-limit metadata Senators don't) without a breaking rename.
+export interface GovernorRace {
+  electionType: ElectionType
+  currentParty: Party
+  incumbent: Incumbent | null // null for open-seat races
+  status: string
+  candidates: Candidate[]
   ratings: RaceRating[]
 }
 
@@ -63,6 +88,9 @@ export interface StateElectionData {
   // from `electionType: 'special'`, which IS an active 2026 race.
   senate: SenateRace | null
   house: HouseDelegation
+  // null when the state has no 2026 gubernatorial election (governors follow
+  // various state-specific cycles, not one shared schedule).
+  governor: GovernorRace | null
 }
 
 // MOCK DATA — replace via the data-access module, not by editing components.
@@ -72,9 +100,20 @@ export interface StateElectionData {
 // vacated mid-term, distinct from the 33 regular Class II contests, for 35
 // total Senate races), one safe-D and one safe-R seat for contrast (MA, WY),
 // and three states with no 2026 Senate election at all (CA, NY, PA — PA also
-// doubles as the evenly-split House delegation example). Incumbent names are
-// invented placeholders, not real officeholders, and every ForecastRating
-// carries its own `source` attribution rather than being presented as fact.
+// doubles as the evenly-split House delegation example). Incumbent and
+// challenger names are invented placeholders, not real people, and every
+// ForecastRating carries its own `source` attribution rather than being
+// presented as fact. Each `candidates[].winProbability` is a hand-set
+// illustrative estimate roughly consistent with that race's `ratings` below
+// (Safe ≈ 95%+, Likely ≈ 75–85%, Lean ≈ 55–65%, Toss-up ≈ 50–52%) — not
+// sourced from any real forecasting model.
+//
+// `governor` follows the same invented-placeholder rules as `senate` and is
+// populated for 9 of the 12 states (GA, MI, ME, TX, FL, OH, MA, CA, PA) with
+// NC, WY, and NY left `null` as the "no 2026 governor election" contrast
+// case — mirroring how `senate: null` is used above. This is illustrative
+// coverage, not a claim about which states actually hold a real 2026
+// gubernatorial election.
 const MOCK_STATES: StateElectionData[] = [
   {
     slug: 'georgia',
@@ -85,6 +124,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'D',
       incumbent: { name: 'Marcus Ridley', party: 'D' },
       status: 'Incumbent seeking a second term in a closely divided state.',
+      candidates: [
+        { name: 'Marcus Ridley', party: 'D', incumbent: true, winProbability: 51 },
+        { name: 'Coleman Ashford', party: 'R', incumbent: false, winProbability: 49 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Toss-up', leaning: null, source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -93,6 +136,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 14, democratSeats: 5, republicanSeats: 9, independentSeats: 0, majorityParty: 'R' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'R',
+      incumbent: { name: 'Warrick Doyle', party: 'R' },
+      status: 'Incumbent seeking a second term.',
+      candidates: [
+        { name: 'Warrick Doyle', party: 'R', incumbent: true, winProbability: 63 },
+        { name: 'Anita Cole', party: 'D', incumbent: false, winProbability: 37 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Lean', leaning: 'R', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'R', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Likely', leaning: 'R', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Lean', leaning: 'R', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'michigan',
@@ -103,6 +162,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'D',
       incumbent: null,
       status: 'Open seat — incumbent not seeking re-election.',
+      candidates: [
+        { name: 'Priya Anand', party: 'D', incumbent: false, winProbability: 61 },
+        { name: 'Derek Holloway', party: 'R', incumbent: false, winProbability: 39 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Lean', leaning: 'D', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Toss-up', leaning: null, source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -111,6 +174,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 13, democratSeats: 7, republicanSeats: 6, independentSeats: 0, majorityParty: 'D' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'D',
+      incumbent: null,
+      status: 'Open seat — governor is term-limited.',
+      candidates: [
+        { name: 'Talia Brennan', party: 'D', incumbent: false, winProbability: 54 },
+        { name: 'Roger Aldous', party: 'R', incumbent: false, winProbability: 46 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Toss-up', leaning: null, source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'D', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Toss-up', leaning: null, source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Lean', leaning: 'D', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'maine',
@@ -121,6 +200,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: { name: 'Eleanor Whitfield', party: 'R' },
       status: 'Longtime incumbent facing a competitive challenge.',
+      candidates: [
+        { name: 'Eleanor Whitfield', party: 'R', incumbent: true, winProbability: 57 },
+        { name: 'Owen Massey', party: 'D', incumbent: false, winProbability: 43 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Lean', leaning: 'R', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Toss-up', leaning: null, source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -129,6 +212,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 2, democratSeats: 2, republicanSeats: 0, independentSeats: 0, majorityParty: 'D' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'D',
+      incumbent: null,
+      status: 'Open seat — governor is term-limited.',
+      candidates: [
+        { name: 'Nathaniel Cross', party: 'D', incumbent: false, winProbability: 58 },
+        { name: 'Wendy Aho', party: 'R', incumbent: false, winProbability: 42 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Lean', leaning: 'D', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'D', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Toss-up', leaning: null, source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Lean', leaning: 'D', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'north-carolina',
@@ -139,6 +238,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: null,
       status: 'Open seat after the incumbent announced retirement.',
+      candidates: [
+        { name: 'Bradley Vance', party: 'R', incumbent: false, winProbability: 55 },
+        { name: 'Camille Renfro', party: 'D', incumbent: false, winProbability: 45 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Toss-up', leaning: null, source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -147,6 +250,7 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 14, democratSeats: 4, republicanSeats: 10, independentSeats: 0, majorityParty: 'R' },
+    governor: null,
   },
   {
     slug: 'texas',
@@ -157,6 +261,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: { name: 'Holt Bregman', party: 'R' },
       status: 'Incumbent seeking re-election after a contested primary.',
+      candidates: [
+        { name: 'Holt Bregman', party: 'R', incumbent: true, winProbability: 78 },
+        { name: 'Marisol Vega', party: 'D', incumbent: false, winProbability: 22 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'R', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Likely', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -165,6 +273,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 38, democratSeats: 13, republicanSeats: 25, independentSeats: 0, majorityParty: 'R' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'R',
+      incumbent: { name: 'Garrett Solis', party: 'R' },
+      status: 'Incumbent seeking re-election.',
+      candidates: [
+        { name: 'Garrett Solis', party: 'R', incumbent: true, winProbability: 82 },
+        { name: 'Denise Okoro', party: 'D', incumbent: false, winProbability: 18 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'R', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'R', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Likely', leaning: 'R', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Likely', leaning: 'R', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'florida',
@@ -175,6 +299,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: { name: 'Diane Castellano', party: 'R' },
       status: 'Special election to complete the remainder of a vacated term.',
+      candidates: [
+        { name: 'Diane Castellano', party: 'R', incumbent: true, winProbability: 83 },
+        { name: 'Julian Ferris', party: 'D', incumbent: false, winProbability: 17 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'R', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -183,6 +311,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 28, democratSeats: 8, republicanSeats: 20, independentSeats: 0, majorityParty: 'R' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'R',
+      incumbent: { name: 'Victor Amaro', party: 'R' },
+      status: 'Incumbent seeking re-election.',
+      candidates: [
+        { name: 'Victor Amaro', party: 'R', incumbent: true, winProbability: 79 },
+        { name: 'Michelle Tran', party: 'D', incumbent: false, winProbability: 21 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'R', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Likely', leaning: 'R', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Safe', leaning: 'R', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Likely', leaning: 'R', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'ohio',
@@ -193,6 +337,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: { name: 'Grant Palmer', party: 'R' },
       status: 'Special election to complete the remainder of a vacated term.',
+      candidates: [
+        { name: 'Grant Palmer', party: 'R', incumbent: true, winProbability: 74 },
+        { name: 'Renee Kowalski', party: 'D', incumbent: false, winProbability: 26 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'R', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -201,6 +349,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 15, democratSeats: 5, republicanSeats: 10, independentSeats: 0, majorityParty: 'R' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'R',
+      incumbent: null,
+      status: 'Open seat — governor is term-limited.',
+      candidates: [
+        { name: 'Peter Kastellan', party: 'R', incumbent: false, winProbability: 60 },
+        { name: 'Angela Ruiz', party: 'D', incumbent: false, winProbability: 40 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Lean', leaning: 'R', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Likely', leaning: 'R', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Lean', leaning: 'R', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Toss-up', leaning: null, source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'massachusetts',
@@ -211,6 +375,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'D',
       incumbent: { name: 'Rosalind Chen', party: 'D' },
       status: 'Incumbent heavily favored for re-election.',
+      candidates: [
+        { name: 'Rosalind Chen', party: 'D', incumbent: true, winProbability: 96 },
+        { name: 'Todd Ibarra', party: 'R', incumbent: false, winProbability: 4 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Safe', leaning: 'D', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'D', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -219,6 +387,22 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 9, democratSeats: 9, republicanSeats: 0, independentSeats: 0, majorityParty: 'D' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'D',
+      incumbent: { name: 'Helena Marsh', party: 'D' },
+      status: 'Incumbent heavily favored for re-election.',
+      candidates: [
+        { name: 'Helena Marsh', party: 'D', incumbent: true, winProbability: 94 },
+        { name: 'Brian Doherty', party: 'R', incumbent: false, winProbability: 6 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Safe', leaning: 'D', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'D', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Safe', leaning: 'D', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Likely', leaning: 'D', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'wyoming',
@@ -229,6 +413,10 @@ const MOCK_STATES: StateElectionData[] = [
       currentParty: 'R',
       incumbent: { name: 'Walt Truman', party: 'R' },
       status: 'Incumbent heavily favored for re-election.',
+      candidates: [
+        { name: 'Walt Truman', party: 'R', incumbent: true, winProbability: 97 },
+        { name: 'Sandra Okafor', party: 'D', incumbent: false, winProbability: 3 },
+      ],
       ratings: [
         { forecaster: 'Cook Political Report', rating: 'Safe', leaning: 'R', source: 'Cook Political Report — Senate ratings (mock)' },
         { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'R', source: "Sabato's Crystal Ball — Senate (mock)" },
@@ -237,6 +425,7 @@ const MOCK_STATES: StateElectionData[] = [
       ],
     },
     house: { totalSeats: 1, democratSeats: 0, republicanSeats: 1, independentSeats: 0, majorityParty: 'R' },
+    governor: null,
   },
   {
     slug: 'california',
@@ -244,6 +433,22 @@ const MOCK_STATES: StateElectionData[] = [
     postalCode: 'CA',
     senate: null,
     house: { totalSeats: 52, democratSeats: 43, republicanSeats: 9, independentSeats: 0, majorityParty: 'D' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'D',
+      incumbent: null,
+      status: 'Open seat — governor is term-limited.',
+      candidates: [
+        { name: 'Marcus Feldman', party: 'D', incumbent: false, winProbability: 88 },
+        { name: 'Trevor Yang', party: 'R', incumbent: false, winProbability: 12 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Safe', leaning: 'D', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Safe', leaning: 'D', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Likely', leaning: 'D', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Safe', leaning: 'D', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
   {
     slug: 'new-york',
@@ -251,6 +456,7 @@ const MOCK_STATES: StateElectionData[] = [
     postalCode: 'NY',
     senate: null,
     house: { totalSeats: 26, democratSeats: 16, republicanSeats: 10, independentSeats: 0, majorityParty: 'D' },
+    governor: null,
   },
   {
     slug: 'pennsylvania',
@@ -258,6 +464,22 @@ const MOCK_STATES: StateElectionData[] = [
     postalCode: 'PA',
     senate: null,
     house: { totalSeats: 16, democratSeats: 8, republicanSeats: 8, independentSeats: 0, majorityParty: 'Split' },
+    governor: {
+      electionType: 'regular',
+      currentParty: 'D',
+      incumbent: { name: 'Dana Whitcombe', party: 'D' },
+      status: 'Incumbent seeking re-election.',
+      candidates: [
+        { name: 'Dana Whitcombe', party: 'D', incumbent: true, winProbability: 71 },
+        { name: 'Sean Marlowe', party: 'R', incumbent: false, winProbability: 29 },
+      ],
+      ratings: [
+        { forecaster: 'Cook Political Report', rating: 'Likely', leaning: 'D', source: 'Cook Political Report — Governor ratings (mock)' },
+        { forecaster: "Sabato's Crystal Ball", rating: 'Lean', leaning: 'D', source: "Sabato's Crystal Ball — Governor (mock)" },
+        { forecaster: 'Inside Elections', rating: 'Likely', leaning: 'D', source: 'Inside Elections — Governor ratings (mock)' },
+        { forecaster: 'Decision Desk HQ', rating: 'Likely', leaning: 'D', source: 'Decision Desk HQ — Governor forecast (mock)' },
+      ],
+    },
   },
 ]
 

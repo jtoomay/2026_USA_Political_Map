@@ -5,7 +5,7 @@ import { SITE_URL } from '../lib/site'
 // Served at /sitemap.xml automatically. Add a new page here whenever a new
 // public route is added — this is not derived from the routes automatically.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ['', '/example', '/data', '/stack', '/about', '/privacy', '/contact']
+  const routes = ['', '/about', '/privacy', '/contact']
   const stateRoutes = getAllStates().map((state) => `/states/${state.slug}`)
 
   return [...routes, ...stateRoutes].map((route) => ({

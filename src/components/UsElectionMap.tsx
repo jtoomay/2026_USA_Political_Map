@@ -1,11 +1,11 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { USAMap } from '@mirawision/usa-map-react'
 import type { USAStateAbbreviation } from '@mirawision/usa-map-react'
-import type { Chamber, Party, StateElectionData } from '../api/elections'
+import type { Candidate, Chamber, ElectionType, Party, StateElectionData } from '../api/elections'
 
 // Library choice: react-simple-maps only declares React support up to 18.x
 // (last published 2023) and would need a separate topojson dataset, forcing
@@ -26,20 +26,51 @@ interface UsElectionMapProps {
   showSpecialElections: boolean
 }
 
-// Matches the --color-panel-soft / --color-background tokens in globals.css.
-// Kept as literal hex here (rather than var(--color-*)) because the
-// underlying SVG fill/stroke attributes are set before the CSS custom
-// properties are guaranteed to have resolved on first paint.
-const INERT_FILL = '#1b2233'
-const INERT_STROKE = '#0a0d14'
-const ACTIVE_STROKE = '#0a0d14'
+interface MapPalette {
+  inertFill: string
+  inertStroke: string
+  activeStroke: string
+  party: Record<Party | 'Split', string>
+}
 
-// Matches --color-party-* in globals.css.
-const PARTY_FILL: Record<Party | 'Split', string> = {
-  D: '#4c7ef3',
-  R: '#e3454f',
-  I: '#e3a73b',
-  Split: '#9b7bf0',
+// Two full hex palettes, not CSS vars: the underlying SVG fill/stroke
+// attributes are set before the browser is guaranteed to have resolved CSS
+// custom properties on first paint, so this component picks its own theme
+// copy in JS (via `useTheme` below) rather than writing `var(--color-*)`
+// into the fill/stroke props. Values match --color-panel-soft/--color-
+// background/--color-party-* (dark) and their `[data-theme='light']`
+// overrides in globals.css — keep the two in sync if either changes.
+const DARK_PALETTE: MapPalette = {
+  inertFill: '#1b2233',
+  inertStroke: '#0a0d14',
+  activeStroke: '#0a0d14',
+  party: { D: '#4c7ef3', R: '#e3454f', I: '#e3a73b', Split: '#9b7bf0' },
+}
+
+const LIGHT_PALETTE: MapPalette = {
+  inertFill: '#e5e8f0',
+  inertStroke: '#c9cede',
+  activeStroke: '#ffffff',
+  party: { D: '#2f5fd6', R: '#c8323b', I: '#96700f', Split: '#7c1fb0' },
+}
+
+// Seeded with the deterministic default ('dark') so server and first client
+// render match — same hydration-safe pattern as useCountdown.ts (see
+// CLAUDE.md). Corrected in useEffect once `document` is available, and kept
+// in sync with the ThemeToggle button (which lives in the Nav, outside this
+// component's tree) via a 'themechange' window event since there's no
+// shared theme Context in this app — see ThemeToggle.tsx.
+function useTheme(): 'dark' | 'light' {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    const read = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark')
+    read()
+    window.addEventListener('themechange', read)
+    return () => window.removeEventListener('themechange', read)
+  }, [])
+
+  return theme
 }
 
 // The library's tooltip chrome is a fixed, hardcoded light card (see its
@@ -47,22 +78,52 @@ const PARTY_FILL: Record<Party | 'Split', string> = {
 // explicit dark-on-light colors rather than the --foreground/--muted-
 // foreground tokens (which are light-on-dark in this theme and would be
 // unreadable here).
+//
+// Shared by the Senate and Governor branches below — both are single-winner
+// statewide races with the same shape (see SenateRace/GovernorRace in
+// elections.ts), so this renders either from one component rather than
+// duplicating the candidate-list markup twice.
+function StatewideRaceTooltip({
+  stateName,
+  raceLabel,
+  race,
+}: {
+  stateName: string
+  raceLabel: string
+  race: { electionType: ElectionType; status: string; candidates: Candidate[] }
+}) {
+  const candidates = [...race.candidates].sort((a, b) => b.winProbability - a.winProbability)
+
+  return (
+    <div className="space-y-1.5">
+      <p className="font-display text-sm font-semibold text-neutral-900">{stateName}</p>
+      <p className="text-xs text-neutral-500">
+        {raceLabel}
+        {race.electionType === 'special' ? ' · Special election' : ''}
+      </p>
+      <ul className="space-y-0.5">
+        {candidates.map((candidate) => (
+          <li key={candidate.name} className="flex items-center justify-between gap-3 text-xs text-neutral-800">
+            <span>
+              {candidate.name} ({candidate.party})
+              {candidate.incumbent ? ' · Inc.' : ''}
+            </span>
+            <span className="font-semibold text-neutral-900">{candidate.winProbability}% to win</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-neutral-500">{race.status}</p>
+    </div>
+  )
+}
+
 function StateTooltipContent({ state, chamber }: { state: StateElectionData; chamber: Chamber }) {
   if (chamber === 'senate' && state.senate) {
-    const holder = state.senate.incumbent
-      ? `${state.senate.incumbent.name} (${state.senate.incumbent.party})`
-      : `Open seat — currently held by ${state.senate.currentParty}`
+    return <StatewideRaceTooltip stateName={state.name} raceLabel="Senate" race={state.senate} />
+  }
 
-    return (
-      <div className="space-y-1">
-        <p className="font-display text-sm font-semibold text-neutral-900">{state.name}</p>
-        <p className="text-xs text-neutral-500">
-          Senate{state.senate.electionType === 'special' ? ' · Special election' : ''}
-        </p>
-        <p className="text-xs text-neutral-800">{holder}</p>
-        <p className="text-xs text-neutral-500">{state.senate.status}</p>
-      </div>
-    )
+  if (chamber === 'governor' && state.governor) {
+    return <StatewideRaceTooltip stateName={state.name} raceLabel="Governor" race={state.governor} />
   }
 
   const { house } = state
@@ -84,25 +145,35 @@ function buildStateConfig(
   state: StateElectionData,
   chamber: Chamber,
   showSpecialElections: boolean,
+  palette: MapPalette,
   navigate: (slug: string) => void,
 ): StateConfig {
-  const isActive = chamber === 'senate' ? state.senate !== null : true
+  const isActive =
+    chamber === 'senate' ? state.senate !== null : chamber === 'governor' ? state.governor !== null : true
 
   if (!isActive) {
     return {
-      fill: INERT_FILL,
-      stroke: INERT_STROKE,
+      fill: palette.inertFill,
+      stroke: palette.inertStroke,
       tooltip: { enabled: false },
       label: { enabled: false },
     }
   }
 
-  const fill = chamber === 'senate' ? PARTY_FILL[state.senate!.currentParty] : PARTY_FILL[state.house.majorityParty]
+  const fill =
+    chamber === 'senate'
+      ? palette.party[state.senate!.currentParty]
+      : chamber === 'governor'
+        ? palette.party[state.governor!.currentParty]
+        : palette.party[state.house.majorityParty]
+  // Only Senate specials are modeled in this dataset (see the MOCK_STATES
+  // header comment) — this stays senate-only rather than also checking
+  // `state.governor?.electionType`, which would never be 'special' anyway.
   const isSpecial = chamber === 'senate' && state.senate?.electionType === 'special'
 
   return {
     fill,
-    stroke: ACTIVE_STROKE,
+    stroke: palette.activeStroke,
     onClick: () => navigate(state.slug),
     tooltip: {
       enabled: true,
@@ -118,16 +189,18 @@ function buildStateConfig(
 
 export function UsElectionMap({ states, chamber, showSpecialElections }: UsElectionMapProps) {
   const router = useRouter()
+  const theme = useTheme()
+  const palette = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
 
   const customStates = useMemo(() => {
     const config: Partial<Record<USAStateAbbreviation, StateConfig>> = {}
     for (const state of states) {
-      config[state.postalCode] = buildStateConfig(state, chamber, showSpecialElections, (slug) =>
+      config[state.postalCode] = buildStateConfig(state, chamber, showSpecialElections, palette, (slug) =>
         router.push(`/states/${slug}`),
       )
     }
     return config
-  }, [states, chamber, showSpecialElections, router])
+  }, [states, chamber, showSpecialElections, palette, router])
 
   return (
     <div className="rounded-xl border border-border bg-panel p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
@@ -137,7 +210,12 @@ export function UsElectionMap({ states, chamber, showSpecialElections }: UsElect
           `election-map` class drives the hover-lift rule in globals.css. */}
       <USAMap
         className="election-map"
-        defaultState={{ fill: INERT_FILL, stroke: INERT_STROKE, tooltip: { enabled: false }, label: { enabled: false } }}
+        defaultState={{
+          fill: palette.inertFill,
+          stroke: palette.inertStroke,
+          tooltip: { enabled: false },
+          label: { enabled: false },
+        }}
         customStates={customStates}
         hiddenStates={['DC']}
         mapSettings={{ width: '100%', height: 'fit-content' }}

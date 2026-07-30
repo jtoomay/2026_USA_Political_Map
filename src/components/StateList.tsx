@@ -17,7 +17,7 @@ export function StateList({ states }: StateListProps) {
   return (
     <div className="flex flex-col gap-3">
       <p className="font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-        Tap a state to view its 2026 race details
+        Tap a state to see its 2026 candidates and odds
       </p>
       <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-panel">
         {sorted.map((state) => (

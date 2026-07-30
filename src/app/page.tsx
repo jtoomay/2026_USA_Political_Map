@@ -1,16 +1,19 @@
-import type { Metadata } from 'next'
-import { getAllStates, getLastUpdated } from '@/api/elections'
-import { ElectionMapExplorer } from '@/components/ElectionMapExplorer'
-import { StateList } from '@/components/StateList'
+import type { Metadata } from "next";
+import { getAllStates, getLastUpdated } from "@/api/elections";
+import { ElectionMapExplorer } from "@/components/ElectionMapExplorer";
+import { StateList } from "@/components/StateList";
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: "Home",
   description:
-    '2026 U.S. midterm elections: an interactive Senate and House control map with side-by-side race ratings from multiple forecasters.',
-}
+    "Nonpartisan 2026 map: see who is running for Senate, House, and governor in every state, current officeholders, and each candidate's odds of winning.",
+};
 
 function formatLastUpdated(iso: string): string {
-  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
 }
 
 // TODO: once the real backend is connected, this should read from a `fetch`
@@ -18,21 +21,34 @@ function formatLastUpdated(iso: string): string {
 // src/api/elections.ts) instead of a fully static build — election data
 // changes often and a twice-daily refresh agent is the plan.
 export default function Home() {
-  const states = getAllStates()
-  const lastUpdated = getLastUpdated()
+  const states = getAllStates();
+  const lastUpdated = getLastUpdated();
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 py-14 sm:py-20">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <p className="font-mono text-xs font-medium tracking-[0.2em] text-accent uppercase">2026 U.S. Midterms</p>
+    <div className="mx-auto flex w-full max-w-[var(--content-max-w)] flex-1 flex-col gap-6 px-6 pt-8 pb-14 sm:pt-12 sm:pb-20">
+      <div className="flex flex-col w-fit m-auto items-center gap-3 text-center">
+        <p className="font-mono text-xs font-medium tracking-[0.2em] text-accent uppercase">
+          2026 Senate, House &amp; Governor &middot; Nonpartisan Voter Guide
+        </p>
         <h1 className="font-display max-w-2xl text-5xl font-semibold text-foreground sm:text-6xl">
-          Who controls Congress?
+          2026 United States Mid-Term Election Watch
         </h1>
         <p className="max-w-xl text-muted-foreground">
-          An interactive map of the House and Senate, colored by the party currently holding each seat.
+          Track every 2026 Senate, House, and governor&rsquo;s race, state by
+          state: who&rsquo;s currently in office, who&rsquo;s running against
+          them, and each candidate&rsquo;s odds of winning. Nonpartisan and
+          built from public race ratings &mdash; not affiliated with any party,
+          campaign, or candidate.
+        </p>
+        <p className="hidden max-w-xl text-sm text-muted-foreground md:block">
+          Hover a state for a quick preview of its Senate, House, or governor
+          race. Click through for the full breakdown.
         </p>
         <p className="flex items-center gap-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-          <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+          <span
+            aria-hidden="true"
+            className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent"
+          />
           Updated {formatLastUpdated(lastUpdated)}
         </p>
       </div>
@@ -48,5 +64,5 @@ export default function Home() {
         <StateList states={states} />
       </div>
     </div>
-  )
+  );
 }

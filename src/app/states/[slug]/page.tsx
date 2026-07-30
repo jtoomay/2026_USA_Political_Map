@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAllStates, getLastUpdated, getStateData } from '@/api/elections'
+import type { GovernorRace, SenateRace } from '@/api/elections'
 import { RaceRatingsTable } from '@/components/RaceRatingsTable'
+import { WinProbabilityMeter } from '@/components/WinProbabilityMeter'
 
 export function generateStaticParams() {
   return getAllStates().map((state) => ({ slug: state.slug }))
@@ -16,14 +18,104 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'State not found' }
   }
 
+  if (state.senate && state.governor) {
+    const senateMatchup = state.senate.candidates.map((c) => `${c.name} (${c.party})`).join(' vs. ')
+    return {
+      title: `${state.name} 2026 Senate & Governor: Candidates & Odds`,
+      description: `Who's running in ${state.name} in 2026? Senate: ${senateMatchup}. Nonpartisan win odds for Senate and governor, plus forecaster ratings.`,
+    }
+  }
+
+  if (state.senate) {
+    const matchup = state.senate.candidates.map((c) => `${c.name} (${c.party})`).join(' vs. ')
+    return {
+      title: `${state.name} 2026 Senate Race: Candidates & Odds`,
+      description: `Who's running for U.S. Senate in ${state.name} in 2026? ${matchup} — nonpartisan win odds and forecaster ratings.`,
+    }
+  }
+
+  if (state.governor) {
+    const matchup = state.governor.candidates.map((c) => `${c.name} (${c.party})`).join(' vs. ')
+    return {
+      title: `${state.name} 2026 Governor's Race: Candidates & Odds`,
+      description: `Who's running for governor in ${state.name} in 2026? ${matchup} — nonpartisan win odds and forecaster ratings.`,
+    }
+  }
+
   return {
-    title: `${state.name} — 2026 Midterms`,
-    description: `2026 U.S. Senate and House race information for ${state.name}: current officeholders, election type, and side-by-side forecaster ratings.`,
+    title: `${state.name} 2026 House Delegation — Party Breakdown`,
+    description: `${state.name}'s U.S. House delegation for 2026: nonpartisan party breakdown and seat totals. No Senate or governor race in ${state.name} this cycle.`,
   }
 }
 
 function formatLastUpdated(iso: string): string {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
+}
+
+// Senate and Governor races are both single-winner, statewide races with the
+// same shape (see SenateRace/GovernorRace in elections.ts) — this renders
+// either from one component rather than duplicating the badge/candidates/
+// ratings markup for each.
+function StatewideRaceSection({
+  title,
+  race,
+  noElectionMessage,
+}: {
+  title: string
+  race: SenateRace | GovernorRace | null
+  noElectionMessage: string
+}) {
+  return (
+    <section className="flex flex-col gap-4">
+      <h2 className="font-display text-2xl font-semibold text-foreground">{title}</h2>
+
+      {race ? (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className={
+                race.electionType === 'special'
+                  ? 'rounded-full border border-party-i/30 bg-party-i/10 px-3 py-1 text-xs font-semibold text-party-i'
+                  : 'rounded-full border border-border bg-panel-soft px-3 py-1 text-xs font-semibold text-muted-foreground'
+              }
+            >
+              {race.electionType === 'special' ? 'Special election' : 'Regular election'}
+            </span>
+            <span className="text-sm text-foreground">
+              {race.incumbent
+                ? `${race.incumbent.name} (${race.incumbent.party})`
+                : `Open seat — currently held by ${race.currentParty}`}
+            </span>
+          </div>
+
+          <p className="text-sm text-muted-foreground">{race.status}</p>
+
+          <div className="flex flex-col gap-4 rounded-xl border border-border bg-panel p-5">
+            <h3 className="font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
+              2026 candidates &amp; win probability
+            </h3>
+            <div className="flex flex-col gap-4">
+              {[...race.candidates]
+                .sort((a, b) => b.winProbability - a.winProbability)
+                .map((candidate) => (
+                  <WinProbabilityMeter key={candidate.name} candidate={candidate} />
+                ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Win probability is a simplified estimate derived from the forecaster ratings below — not a
+              prediction from any single pollster, model, or party.
+            </p>
+          </div>
+
+          <RaceRatingsTable ratings={race.ratings} />
+        </>
+      ) : (
+        <p className="rounded-xl border border-border bg-panel px-5 py-4 text-sm text-muted-foreground">
+          {noElectionMessage}
+        </p>
+      )}
+    </section>
+  )
 }
 
 export default async function StatePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,7 +126,7 @@ export default async function StatePage({ params }: { params: Promise<{ slug: st
     notFound()
   }
 
-  const { senate, house } = state
+  const { senate, house, governor } = state
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-12 px-6 py-16 sm:py-20">
@@ -52,38 +144,17 @@ export default async function StatePage({ params }: { params: Promise<{ slug: st
         </p>
       </div>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-display text-2xl font-semibold text-foreground">U.S. Senate</h2>
+      <StatewideRaceSection
+        title="U.S. Senate"
+        race={senate}
+        noElectionMessage={`No U.S. Senate election is scheduled in ${state.name} for 2026.`}
+      />
 
-        {senate ? (
-          <>
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                className={
-                  senate.electionType === 'special'
-                    ? 'rounded-full border border-party-i/30 bg-party-i/10 px-3 py-1 text-xs font-semibold text-party-i'
-                    : 'rounded-full border border-border bg-panel-soft px-3 py-1 text-xs font-semibold text-muted-foreground'
-                }
-              >
-                {senate.electionType === 'special' ? 'Special election' : 'Regular election'}
-              </span>
-              <span className="text-sm text-foreground">
-                {senate.incumbent
-                  ? `${senate.incumbent.name} (${senate.incumbent.party})`
-                  : `Open seat — currently held by ${senate.currentParty}`}
-              </span>
-            </div>
-
-            <p className="text-sm text-muted-foreground">{senate.status}</p>
-
-            <RaceRatingsTable ratings={senate.ratings} />
-          </>
-        ) : (
-          <p className="rounded-xl border border-border bg-panel px-5 py-4 text-sm text-muted-foreground">
-            No U.S. Senate election is scheduled in {state.name} for 2026.
-          </p>
-        )}
-      </section>
+      <StatewideRaceSection
+        title="Governor"
+        race={governor}
+        noElectionMessage={`No gubernatorial election is scheduled in ${state.name} for 2026.`}
+      />
 
       <section className="flex flex-col gap-4">
         <h2 className="font-display text-2xl font-semibold text-foreground">U.S. House delegation</h2>

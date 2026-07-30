@@ -22,14 +22,19 @@ export default function Home() {
   const lastUpdated = getLastUpdated()
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-12">
-      <div className="text-center">
-        <h1 className="font-display text-4xl font-bold text-foreground sm:text-5xl">2026 Midterm Elections</h1>
-        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          An interactive map of the 2026 U.S. Senate and House races, colored by the party
-          currently controlling each seat.
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 py-14 sm:py-20">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <p className="font-mono text-xs font-medium tracking-[0.2em] text-accent uppercase">2026 U.S. Midterms</p>
+        <h1 className="font-display max-w-2xl text-5xl font-semibold text-foreground sm:text-6xl">
+          Who controls Congress?
+        </h1>
+        <p className="max-w-xl text-muted-foreground">
+          An interactive map of the House and Senate, colored by the party currently holding each seat.
         </p>
-        <p className="mt-2 text-xs text-muted-foreground">Last updated {formatLastUpdated(lastUpdated)}</p>
+        <p className="flex items-center gap-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
+          <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+          Updated {formatLastUpdated(lastUpdated)}
+        </p>
       </div>
 
       {/* Desktop/tablet: interactive map. Mobile: plain list below — both

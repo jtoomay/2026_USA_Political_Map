@@ -26,21 +26,27 @@ interface UsElectionMapProps {
   showSpecialElections: boolean
 }
 
-// Matches the --color-muted / --color-border tokens in globals.css. Kept as
-// literal hex here (rather than var(--color-muted)) because the underlying
-// SVG fill/stroke attributes are set before the CSS custom properties are
-// guaranteed to have resolved on first paint.
-const INERT_FILL = '#e5e5e5'
-const INERT_STROKE = '#ffffff'
-const ACTIVE_STROKE = '#ffffff'
+// Matches the --color-panel-soft / --color-background tokens in globals.css.
+// Kept as literal hex here (rather than var(--color-*)) because the
+// underlying SVG fill/stroke attributes are set before the CSS custom
+// properties are guaranteed to have resolved on first paint.
+const INERT_FILL = '#1b2233'
+const INERT_STROKE = '#0a0d14'
+const ACTIVE_STROKE = '#0a0d14'
 
+// Matches --color-party-* in globals.css.
 const PARTY_FILL: Record<Party | 'Split', string> = {
-  D: '#1d4ed8',
-  R: '#b91c1c',
-  I: '#b45309',
-  Split: '#6d28d9',
+  D: '#4c7ef3',
+  R: '#e3454f',
+  I: '#e3a73b',
+  Split: '#9b7bf0',
 }
 
+// The library's tooltip chrome is a fixed, hardcoded light card (see its
+// bundled styles.css) regardless of our page theme, so this content uses
+// explicit dark-on-light colors rather than the --foreground/--muted-
+// foreground tokens (which are light-on-dark in this theme and would be
+// unreadable here).
 function StateTooltipContent({ state, chamber }: { state: StateElectionData; chamber: Chamber }) {
   if (chamber === 'senate' && state.senate) {
     const holder = state.senate.incumbent
@@ -49,12 +55,12 @@ function StateTooltipContent({ state, chamber }: { state: StateElectionData; cha
 
     return (
       <div className="space-y-1">
-        <p className="font-display text-sm font-semibold text-foreground">{state.name}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="font-display text-sm font-semibold text-neutral-900">{state.name}</p>
+        <p className="text-xs text-neutral-500">
           Senate{state.senate.electionType === 'special' ? ' · Special election' : ''}
         </p>
-        <p className="text-xs text-foreground">{holder}</p>
-        <p className="text-xs text-muted-foreground">{state.senate.status}</p>
+        <p className="text-xs text-neutral-800">{holder}</p>
+        <p className="text-xs text-neutral-500">{state.senate.status}</p>
       </div>
     )
   }
@@ -64,9 +70,9 @@ function StateTooltipContent({ state, chamber }: { state: StateElectionData; cha
 
   return (
     <div className="space-y-1">
-      <p className="font-display text-sm font-semibold text-foreground">{state.name}</p>
-      <p className="text-xs text-muted-foreground">House delegation</p>
-      <p className="text-xs text-foreground">
+      <p className="font-display text-sm font-semibold text-neutral-900">{state.name}</p>
+      <p className="text-xs text-neutral-500">House delegation</p>
+      <p className="text-xs text-neutral-800">
         {majority} ({house.democratSeats}D–{house.republicanSeats}R
         {house.independentSeats > 0 ? `–${house.independentSeats}I` : ''} of {house.totalSeats})
       </p>
@@ -124,11 +130,13 @@ export function UsElectionMap({ states, chamber, showSpecialElections }: UsElect
   }, [states, chamber, showSpecialElections, router])
 
   return (
-    <div className="rounded-lg border border-border p-4">
+    <div className="rounded-xl border border-border bg-panel p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
       {/* States outside the mock dataset (most of the 50) fall through to
           this inert default — production data needs to cover all 50 so House
-          mode can make every state genuinely active, per the spec. */}
+          mode can make every state genuinely active, per the spec. The
+          `election-map` class drives the hover-lift rule in globals.css. */}
       <USAMap
+        className="election-map"
         defaultState={{ fill: INERT_FILL, stroke: INERT_STROKE, tooltip: { enabled: false }, label: { enabled: false } }}
         customStates={customStates}
         hiddenStates={['DC']}

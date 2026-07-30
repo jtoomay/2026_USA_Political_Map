@@ -14,7 +14,7 @@ const OPTIONS: { value: Chamber; label: string }[] = [
 
 export function ChamberToggle({ chamber, onChange }: ChamberToggleProps) {
   return (
-    <div className="inline-flex rounded-md border border-border p-1" role="group" aria-label="Chamber">
+    <div className="inline-flex rounded-full border border-border bg-panel-soft p-1" role="group" aria-label="Chamber">
       {OPTIONS.map((option) => (
         <button
           key={option.value}
@@ -23,8 +23,8 @@ export function ChamberToggle({ chamber, onChange }: ChamberToggleProps) {
           aria-pressed={chamber === option.value}
           className={
             chamber === option.value
-              ? 'rounded px-4 py-1.5 text-sm font-semibold bg-foreground text-background'
-              : 'rounded px-4 py-1.5 text-sm font-semibold text-muted-foreground transition hover:text-foreground'
+              ? 'rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground'
+              : 'rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition hover:text-foreground'
           }
         >
           {option.label}

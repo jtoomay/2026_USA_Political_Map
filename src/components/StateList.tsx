@@ -16,16 +16,18 @@ export function StateList({ states }: StateListProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-muted-foreground">Tap a state to view its 2026 race details.</p>
-      <ul className="divide-y divide-border rounded-lg border border-border">
+      <p className="font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
+        Tap a state to view its 2026 race details
+      </p>
+      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-panel">
         {sorted.map((state) => (
           <li key={state.slug}>
             <Link
               href={`/states/${state.slug}`}
-              className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+              className="flex items-center justify-between gap-3 px-4 py-3.5 text-sm text-foreground transition hover:bg-panel-soft"
             >
               <span>{state.name}</span>
-              <span aria-hidden="true" className="text-muted-foreground">
+              <span aria-hidden="true" className="text-accent">
                 &rarr;
               </span>
             </Link>

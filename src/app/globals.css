@@ -1,28 +1,88 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #6b7280;
-  --color-border: #e5e5e5;
+  /* "Election control room" theme: deep navy ink, off-white text, and one
+     dedicated system accent (teal) kept separate from the party colors so
+     "this is active" never visually collides with "this seat is red/blue." */
+  --color-background: #0a0d14;
+  --color-foreground: #f3f4f8;
+  --color-panel: #131826;
+  --color-panel-soft: #1b2233;
+  --color-muted: #1b2233;
+  --color-muted-foreground: #8892a8;
+  --color-border: #232a3d;
 
-  --color-party-r: #b91c1c;
-  --color-party-d: #1d4ed8;
-  --color-party-i: #b45309;
-  --color-party-split: #6d28d9;
+  --color-accent: #2dd4bf;
+  --color-accent-foreground: #06201c;
 
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-party-r: #e3454f;
+  --color-party-d: #4c7ef3;
+  --color-party-i: #e3a73b;
+  --color-party-split: #9b7bf0;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body {
     @apply bg-background text-foreground font-body;
+  }
+}
+
+/* State hover-lift, applied via the `election-map` class passed to <USAMap>.
+   The map library doesn't expose a per-state class hook (see the comment in
+   UsElectionMap.tsx), so this necessarily applies to every path, including
+   inert/no-data states — treated as an acceptable, honest affordance ("this
+   is a map region") rather than a false promise of interactivity. */
+.election-map path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 180ms ease;
+}
+
+.election-map path:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .election-map path {
+    transition: filter 180ms ease;
+  }
+
+  .election-map path:hover {
+    transform: none;
+    filter: drop-shadow(0 0 0 rgba(45, 212, 191, 0.8));
+  }
+}
+
+/* Restrained "live data" ambient pulse for the updated-timestamp dot. */
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.5);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 4px rgba(45, 212, 191, 0);
+  }
+}
+
+.pulse-dot {
+  animation: pulse-live 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none;
   }
 }

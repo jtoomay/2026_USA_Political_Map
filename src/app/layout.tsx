@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Footer } from '../components/Footer'
 import { Nav } from '../components/Nav'
-import { inter, jetbrainsMono } from '../lib/fonts'
+import { fraunces, jetbrainsMono, publicSans } from '../lib/fonts'
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE_DEFAULT, SITE_URL } from '../lib/site'
 import './globals.css'
 
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light',
-  themeColor: '#ffffff',
+  colorScheme: 'dark',
+  themeColor: '#0a0d14',
 }
 
 const jsonLd = {
@@ -56,7 +56,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${publicSans.variable} ${jetbrainsMono.variable}`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>

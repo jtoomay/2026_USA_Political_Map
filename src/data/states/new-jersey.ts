@@ -1,0 +1,97 @@
+import type { StateElectionData } from '@/api/elections'
+
+export const newJersey: StateElectionData = {
+  slug: 'new-jersey',
+  name: 'New Jersey',
+  postalCode: 'NJ',
+  senate: {
+    electionType: 'regular',
+    currentParty: 'D',
+    incumbent: { name: 'Cory Booker', party: 'D' },
+    status:
+      'Booker ran unopposed in the June 2, 2026 Democratic primary and is seeking a third full term. Justin Murphy, a former deputy mayor of Tabernacle Township, won a crowded four-way Republican primary with about a third of the vote, beating state trooper Richard Tabor, former News 12 reporter Alex Zdan, and physician Robert Lebovics. New Jersey has not elected a Republican to the U.S. Senate since 1972, and Booker holds a heavy fundraising advantage heading into November.',
+    candidates: [
+      { name: 'Cory Booker', party: 'D', incumbent: true, winProbability: 97 },
+      { name: 'Justin Murphy', party: 'R', incumbent: false, winProbability: 3 },
+      { name: 'Nicholas Carducci', party: 'I', incumbent: false, winProbability: 0 },
+      { name: 'Michael Estrada', party: 'I', incumbent: false, winProbability: 0 },
+      { name: 'Joanne Kuniansky', party: 'I', incumbent: false, winProbability: 0 },
+      { name: 'Veronica Fernandez', party: 'I', incumbent: false, winProbability: 0 },
+    ],
+    ratings: [
+      {
+        forecaster: 'Cook Political Report',
+        rating: 'Safe',
+        leaning: 'D',
+        source: 'Cook Political Report — New Jersey Senate 2026',
+        sourceUrl: 'https://www.cookpolitical.com/senate/race/488641',
+      },
+      {
+        forecaster: "Sabato's Crystal Ball",
+        rating: 'Safe',
+        leaning: 'D',
+        source: "Sabato's Crystal Ball — 2026 Senate ratings",
+        sourceUrl: 'https://centerforpolitics.org/crystalball/2026-senate/',
+      },
+      {
+        forecaster: 'Inside Elections',
+        rating: 'Safe',
+        leaning: 'D',
+        source: 'Inside Elections — New Jersey Senate 2026',
+        sourceUrl: 'https://insideelections.com/election-year/2026/?state-district=nj&office=senate',
+      },
+      {
+        forecaster: 'Decision Desk HQ',
+        rating: 'Safe',
+        leaning: 'D',
+        source: 'Decision Desk HQ — 2026 Senate forecast',
+        sourceUrl: 'https://votes.decisiondeskhq.com/forecast/2026/senate',
+      },
+    ],
+    polls: [],
+  },
+  governor: null,
+  house: {
+    totalSeats: 12,
+    democratSeats: 9,
+    republicanSeats: 3,
+    independentSeats: 0,
+    majorityParty: 'D',
+  },
+  headlines: [
+    {
+      id: 'nj-headline-1',
+      title: "The GOP's big 2026 question: who will run against Cory Booker?",
+      sourceName: 'New Jersey Globe',
+      sourceUrl: 'https://newjerseyglobe.com/congress/the-gops-big-2026-question-who-will-run-against-cory-booker/',
+      publishedAt: '2025-12-16',
+      race: 'senate',
+    },
+    {
+      id: 'nj-headline-2',
+      title: 'Former Tabernacle committeeman will run for U.S. Senate again',
+      sourceName: 'New Jersey Globe',
+      sourceUrl: 'https://newjerseyglobe.com/congress/former-tabernacle-committeeman-will-run-for-u-s-senate-again/',
+      publishedAt: '2025-12-18',
+      summary: 'Justin Murphy, a former Tabernacle Township deputy mayor, launched his Republican bid to challenge Sen. Cory Booker.',
+      race: 'senate',
+    },
+    {
+      id: 'nj-headline-3',
+      title: 'Zdan wins Burlington GOP endorsement in bid to challenge Booker',
+      sourceName: 'New Jersey Globe',
+      sourceUrl: 'https://newjerseyglobe.com/congress/zdan-wins-burlington-gop-endorsement-in-bid-to-challenge-booker/',
+      publishedAt: '2026-02-28',
+      race: 'senate',
+    },
+    {
+      id: 'nj-headline-4',
+      title: 'SEIU backs Booker, eight House incumbents',
+      sourceName: 'New Jersey Globe',
+      sourceUrl: 'https://newjerseyglobe.com/congress/seiu-backs-booker-eight-house-incumbents/',
+      publishedAt: '2026-04-23',
+      summary: 'The SEIU state council endorsed Sen. Cory Booker for re-election alongside eight House incumbents ahead of the primary.',
+      race: 'senate',
+    },
+  ],
+}

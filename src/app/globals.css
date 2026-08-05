@@ -114,6 +114,33 @@
   }
 }
 
+/* The map library injects its own tooltip chrome (a fixed-position card —
+   see the comment above StatewideRaceTooltip in UsElectionMap.tsx) with a
+   hardcoded 200px max-width and no height cap, via its own <style> tag.
+   !important is required on max-width because that tag can land after this
+   stylesheet in the DOM, and a plain same-specificity rule isn't guaranteed
+   to win the cascade in that case. The height cap keeps races with a long
+   candidate field (crowded primaries, minor-party candidates, etc.) from
+   growing the tooltip past a reasonable size — content past ~10 lines is
+   clipped rather than pushing the tooltip off-screen. The gradient is a
+   no-op on short tooltips (it fades to the same near-white the library's
+   tooltip background already uses) and only reads as a fade where it
+   actually overlaps clipped text. */
+.usa-map-tooltip {
+  max-width: 320px !important;
+  max-height: 13rem;
+  overflow: hidden;
+}
+
+.usa-map-tooltip::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+}
+
 /* Restrained "live data" ambient pulse for the updated-timestamp dot. */
 @keyframes pulse-live {
   0%,

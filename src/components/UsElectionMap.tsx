@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { USAMap } from '@mirawision/usa-map-react'
 import type { USAStateAbbreviation } from '@mirawision/usa-map-react'
-import type { Candidate, Chamber, ElectionType, Party, StateElectionData } from '../api/elections'
+import { getCandidatePollingSummary, getMostRecentPollDate, getPredictedWinner } from '../api/elections'
+import type { Chamber, GovernorRace, Party, SenateRace, StateElectionData } from '../api/elections'
+import { formatDate } from '../lib/format'
 
 // Library choice: react-simple-maps only declares React support up to 18.x
 // (last published 2023) and would need a separate topojson dataset, forcing
@@ -90,9 +92,10 @@ function StatewideRaceTooltip({
 }: {
   stateName: string
   raceLabel: string
-  race: { electionType: ElectionType; status: string; candidates: Candidate[] }
+  race: SenateRace | GovernorRace
 }) {
-  const candidates = [...race.candidates].sort((a, b) => b.winProbability - a.winProbability)
+  const pollingSummary = getCandidatePollingSummary(race)
+  const mostRecentPollDate = getMostRecentPollDate(race.polls)
 
   return (
     <div className="space-y-1.5">
@@ -102,16 +105,26 @@ function StatewideRaceTooltip({
         {race.electionType === 'special' ? ' · Special election' : ''}
       </p>
       <ul className="space-y-0.5">
-        {candidates.map((candidate) => (
+        {pollingSummary.map(({ candidate, pollingAverage }) => (
           <li key={candidate.name} className="flex items-center justify-between gap-3 text-xs text-neutral-800">
             <span>
               {candidate.name} ({candidate.party})
               {candidate.incumbent ? ' · Inc.' : ''}
             </span>
-            <span className="font-semibold text-neutral-900">{candidate.winProbability}% to win</span>
+            <span className="font-semibold text-neutral-900">
+              {pollingAverage !== null ? `${Math.round(pollingAverage)}%` : `Est. ${candidate.winProbability}%`}
+            </span>
           </li>
         ))}
       </ul>
+      {/* Real polling when curated for this race, otherwise fall back to the
+          illustrative win-probability estimate — the two numbers are never
+          shown unlabeled/conflated, per the elections.ts doc comment. */}
+      <p className="text-xs text-neutral-500">
+        {mostRecentPollDate
+          ? `Polling avg · ${race.polls.length} poll${race.polls.length === 1 ? '' : 's'}, most recent ${formatDate(mostRecentPollDate)}`
+          : 'No recent public polling — showing est. win probability'}
+      </p>
       <p className="text-xs text-neutral-500">{race.status}</p>
     </div>
   )
@@ -146,7 +159,9 @@ function buildStateConfig(
   chamber: Chamber,
   showSpecialElections: boolean,
   palette: MapPalette,
+  isHovered: boolean,
   navigate: (slug: string) => void,
+  setHoveredState: (postalCode: USAStateAbbreviation | null) => void,
 ): StateConfig {
   const isActive =
     chamber === 'senate' ? state.senate !== null : chamber === 'governor' ? state.governor !== null : true
@@ -160,12 +175,30 @@ function buildStateConfig(
     }
   }
 
-  const fill =
+  // Senate/Governor only — House mode has no single-race prediction to show
+  // (HouseDelegation is a whole-delegation snapshot, not a per-district
+  // race), so `race` stays null there and the fill never changes on hover.
+  const race = chamber === 'senate' ? state.senate : chamber === 'governor' ? state.governor : null
+  let fill =
     chamber === 'senate'
       ? palette.party[state.senate!.currentParty]
       : chamber === 'governor'
         ? palette.party[state.governor!.currentParty]
         : palette.party[state.house.majorityParty]
+
+  // On hover, preview a projected flip: if the race's projected winner (real
+  // polling average when the race has any, else the illustrative
+  // winProbability estimate — see getPredictedWinner) belongs to a
+  // different party than the one currently holding the seat, swap to that
+  // party's color. Races not expected to flip keep their current-party fill
+  // unchanged on hover.
+  if (isHovered && race) {
+    const predictedWinner = getPredictedWinner(race)
+    if (predictedWinner.party !== race.currentParty) {
+      fill = palette.party[predictedWinner.party]
+    }
+  }
+
   // Only Senate specials are modeled in this dataset (see the MOCK_STATES
   // header comment) — this stays senate-only rather than also checking
   // `state.governor?.electionType`, which would never be 'special' anyway.
@@ -175,6 +208,8 @@ function buildStateConfig(
     fill,
     stroke: palette.activeStroke,
     onClick: () => navigate(state.slug),
+    onHover: () => setHoveredState(state.postalCode),
+    onLeave: () => setHoveredState(null),
     tooltip: {
       enabled: true,
       render: () => <StateTooltipContent state={state} chamber={chamber} />,
@@ -191,16 +226,23 @@ export function UsElectionMap({ states, chamber, showSpecialElections }: UsElect
   const router = useRouter()
   const theme = useTheme()
   const palette = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
+  const [hoveredState, setHoveredState] = useState<USAStateAbbreviation | null>(null)
 
   const customStates = useMemo(() => {
     const config: Partial<Record<USAStateAbbreviation, StateConfig>> = {}
     for (const state of states) {
-      config[state.postalCode] = buildStateConfig(state, chamber, showSpecialElections, palette, (slug) =>
-        router.push(`/states/${slug}`),
+      config[state.postalCode] = buildStateConfig(
+        state,
+        chamber,
+        showSpecialElections,
+        palette,
+        hoveredState === state.postalCode,
+        (slug) => router.push(`/states/${slug}`),
+        setHoveredState,
       )
     }
     return config
-  }, [states, chamber, showSpecialElections, palette, router])
+  }, [states, chamber, showSpecialElections, palette, hoveredState, router])
 
   return (
     <div className="rounded-xl border border-border bg-panel p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">

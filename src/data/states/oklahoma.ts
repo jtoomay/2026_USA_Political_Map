@@ -1,0 +1,166 @@
+import type { StateElectionData } from '@/api/elections'
+
+export const oklahoma: StateElectionData = {
+  slug: 'oklahoma',
+  name: 'Oklahoma',
+  postalCode: 'OK',
+  senate: {
+    electionType: 'regular',
+    currentParty: 'R',
+    incumbent: null,
+    status:
+      'Sen. Markwayne Mullin resigned March 23, 2026 after being confirmed as U.S. Secretary of Homeland Security; Gov. Kevin Stitt appointed energy executive Alan Armstrong as interim successor the next day, but Armstrong is not seeking a full term. Rep. Kevin Hern won the June 16, 2026 Republican primary outright with endorsements from President Trump and Senate GOP leadership. Democrats Jim Priest and Jasmine Thomas advanced to an August 25, 2026 runoff after neither cleared a majority in a five-way primary. Libertarian Sevier White also qualified for the general-election ballot.',
+    candidates: [
+      { name: 'Kevin Hern', party: 'R', incumbent: false, winProbability: 95 },
+      { name: 'Jim Priest', party: 'D', incumbent: false, winProbability: 2 },
+      { name: 'Jasmine Thomas', party: 'D', incumbent: false, winProbability: 2 },
+      { name: 'Sevier White', party: 'I', incumbent: false, winProbability: 1 },
+    ],
+    ratings: [
+      {
+        forecaster: 'Cook Political Report',
+        rating: 'Safe',
+        leaning: 'R',
+        source: 'Cook Political Report — Oklahoma Senate 2026',
+        sourceUrl: 'https://www.cookpolitical.com/ratings/senate-race-ratings',
+      },
+      {
+        forecaster: "Sabato's Crystal Ball",
+        rating: 'Safe',
+        leaning: 'R',
+        source: "Sabato's Crystal Ball — 2026 Senate ratings",
+        sourceUrl: 'https://centerforpolitics.org/crystalball/2026-senate/',
+      },
+      {
+        forecaster: 'Inside Elections',
+        rating: 'Safe',
+        leaning: 'R',
+        source: 'Inside Elections — Oklahoma Senate 2026',
+        sourceUrl: 'https://www.insideelections.com/ratings/senate',
+      },
+      {
+        forecaster: 'Decision Desk HQ',
+        rating: 'Safe',
+        leaning: 'R',
+        source: 'Decision Desk HQ — 2026 Senate forecast',
+        sourceUrl: 'https://votes.decisiondeskhq.com/forecast/2026/senate',
+      },
+    ],
+    polls: [],
+  },
+  governor: {
+    electionType: 'regular',
+    currentParty: 'R',
+    incumbent: null,
+    status:
+      'Gov. Kevin Stitt is term-limited. Attorney General Gentner Drummond and former state Sen. Mike Mazzei advanced to an August 25, 2026 Republican runoff after neither topped 30% in a nine-candidate primary; President Trump has endorsed Mazzei and labeled Drummond a "RINO." State Rep. Cyndi Munson won the Democratic nomination outright. Independents Robert Brooks Sr., Orlando Lynn Bush, and Jerry Griffin also qualified for the general-election ballot.',
+    candidates: [
+      { name: 'Gentner Drummond', party: 'R', incumbent: false, winProbability: 45 },
+      { name: 'Mike Mazzei', party: 'R', incumbent: false, winProbability: 45 },
+      { name: 'Cyndi Munson', party: 'D', incumbent: false, winProbability: 7 },
+      { name: 'Robert Brooks Sr.', party: 'I', incumbent: false, winProbability: 1 },
+      { name: 'Orlando Lynn Bush', party: 'I', incumbent: false, winProbability: 1 },
+      { name: 'Jerry Griffin', party: 'I', incumbent: false, winProbability: 1 },
+    ],
+    ratings: [
+      {
+        forecaster: 'Cook Political Report',
+        rating: 'Safe',
+        leaning: 'R',
+        source: 'Cook Political Report — Oklahoma Governor 2026',
+        sourceUrl: 'https://www.cookpolitical.com/ratings/governor-race-ratings',
+      },
+      {
+        forecaster: "Sabato's Crystal Ball",
+        rating: 'Safe',
+        leaning: 'R',
+        source: "Sabato's Crystal Ball — 2026 Governor ratings",
+        sourceUrl: 'https://centerforpolitics.org/crystalball/2026-governor/',
+      },
+      {
+        forecaster: 'Inside Elections',
+        rating: 'Safe',
+        leaning: 'R',
+        source: 'Inside Elections — Oklahoma Governor 2026',
+        sourceUrl: 'https://www.insideelections.com/ratings/governor',
+      },
+    ],
+    polls: [
+      {
+        id: 'ok-governor-2026-06-19-cygnal',
+        pollster: 'Cygnal',
+        dateConducted: '2026-06-19',
+        sampleSize: 600,
+        results: [
+          { candidateName: 'Gentner Drummond', percentage: 44 },
+          { candidateName: 'Mike Mazzei', percentage: 42 },
+        ],
+        sourceName: 'Wikipedia',
+        sourceUrl: 'https://en.wikipedia.org/wiki/2026_Oklahoma_gubernatorial_election',
+      },
+      {
+        id: 'ok-governor-2026-06-23-pulse-decision-science',
+        pollster: 'Pulse Decision Science',
+        dateConducted: '2026-06-23',
+        sampleSize: 606,
+        results: [
+          { candidateName: 'Mike Mazzei', percentage: 44 },
+          { candidateName: 'Gentner Drummond', percentage: 38 },
+        ],
+        sourceName: 'Wikipedia',
+        sourceUrl: 'https://en.wikipedia.org/wiki/2026_Oklahoma_gubernatorial_election',
+      },
+    ],
+  },
+  house: {
+    totalSeats: 5,
+    democratSeats: 0,
+    republicanSeats: 5,
+    independentSeats: 0,
+    majorityParty: 'R',
+  },
+  headlines: [
+    {
+      id: 'ok-headline-1',
+      title: 'Markwayne Mullin confirmed as the next secretary of Homeland Security',
+      sourceName: 'NPR',
+      sourceUrl: 'https://www.npr.org/2026/03/23/g-s1-114813/markwayne-mullin-confirmed-homeland-security',
+      publishedAt: '2026-03-23',
+      summary: "Mullin's confirmation vacated his Senate seat, triggering Gov. Stitt's appointment of a successor and opening the 2026 Senate race to a new field.",
+      race: 'senate',
+    },
+    {
+      id: 'ok-headline-2',
+      title: 'Stitt picks energy executive Alan Armstrong as next Oklahoma senator',
+      sourceName: 'POLITICO',
+      sourceUrl: 'https://www.politico.com/live-updates/2026/03/24/congress/oklahoma-senator-alan-armstrong-00841481',
+      publishedAt: '2026-03-24',
+      race: 'senate',
+    },
+    {
+      id: 'ok-headline-3',
+      title: 'Thune, Tim Scott endorse Hern for open Oklahoma Senate seat',
+      sourceName: 'POLITICO',
+      sourceUrl: 'https://www.politico.com/live-updates/2026/03/19/congress/kevin-hern-oklahoma-senate-endorsements-00835727',
+      publishedAt: '2026-03-19',
+      race: 'senate',
+    },
+    {
+      id: 'ok-headline-4',
+      title: 'Mike Mazzei declines TV debate invite for Aug. 25 runoff',
+      sourceName: 'NonDoc',
+      sourceUrl: 'https://nondoc.com/2026/07/08/mike-mazzei-declines-tv-debate-invite-for-aug-25-runoff/',
+      publishedAt: '2026-07-08',
+      race: 'governor',
+    },
+    {
+      id: 'ok-headline-5',
+      title: "Trump reiterates Mazzei endorsement for governor, calls Drummond 'RINO'",
+      sourceName: 'Tulsa World',
+      sourceUrl:
+        'https://tulsaworld.com/news/state-regional/government-politics/elections/article_d354c0d1-7bab-4176-8514-916688ff1f4e.html',
+      publishedAt: '2026-07-16',
+      race: 'governor',
+    },
+  ],
+}

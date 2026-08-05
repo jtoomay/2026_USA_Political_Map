@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getAllStates, getLastUpdated } from "@/api/elections";
+import { getAllStates, getDataSnapshotDate } from "@/api/elections";
 import { ElectionMapExplorer } from "@/components/ElectionMapExplorer";
 import { StateList } from "@/components/StateList";
+import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -9,20 +10,13 @@ export const metadata: Metadata = {
     "Nonpartisan 2026 map: see who is running for Senate, House, and governor in every state, current officeholders, and each candidate's odds of winning.",
 };
 
-function formatLastUpdated(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
-
 // TODO: once the real backend is connected, this should read from a `fetch`
 // using Next's cache with a short `revalidate` window (see the TODO in
 // src/api/elections.ts) instead of a fully static build — election data
 // changes often and a twice-daily refresh agent is the plan.
 export default function Home() {
   const states = getAllStates();
-  const lastUpdated = getLastUpdated();
+  const snapshotDate = getDataSnapshotDate();
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--content-max-w)] flex-1 flex-col gap-6 px-6 pt-8 pb-14 sm:pt-12 sm:pb-20">
@@ -49,7 +43,7 @@ export default function Home() {
             aria-hidden="true"
             className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent"
           />
-          Updated {formatLastUpdated(lastUpdated)}
+          Data compiled as of {formatDate(snapshotDate)}
         </p>
       </div>
 

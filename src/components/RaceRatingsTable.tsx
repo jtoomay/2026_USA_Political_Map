@@ -48,7 +48,16 @@ export function RaceRatingsTable({ ratings }: RaceRatingsTableProps) {
                     {rating.leaning ? ` ${rating.leaning}` : ''}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{rating.source}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  <a
+                    href={rating.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-dotted underline-offset-2 transition hover:text-accent"
+                  >
+                    {rating.source}
+                  </a>
+                </td>
               </tr>
             )
           })}
